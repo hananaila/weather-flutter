@@ -49,10 +49,18 @@ class LocationModel {
       identical(this, other) ||
       other is LocationModel &&
           runtimeType == other.runtimeType &&
-          (name.toLowerCase() == other.name.toLowerCase() ||
-              (latitude - other.latitude).abs() < 0.05 &&
-                  (longitude - other.longitude).abs() < 0.05);
+          name.toLowerCase() == other.name.toLowerCase() &&
+          (admin1 ?? '').toLowerCase() == (other.admin1 ?? '').toLowerCase() &&
+          (country ?? '').toLowerCase() == (other.country ?? '').toLowerCase() &&
+          (latitude - other.latitude).abs() < 0.001 &&
+          (longitude - other.longitude).abs() < 0.001;
 
   @override
-  int get hashCode => name.toLowerCase().hashCode;
+  int get hashCode => Object.hash(
+        name.toLowerCase(),
+        (admin1 ?? '').toLowerCase(),
+        (country ?? '').toLowerCase(),
+        (latitude * 100).round(),
+        (longitude * 100).round(),
+      );
 }

@@ -24,27 +24,16 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Info Cuaca - Responsi 2',
+        title: 'Weather App',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
+          fontFamily: 'Roboto',
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF2193b0),
+            seedColor: const Color(0xFF0284C7),
             brightness: Brightness.light,
           ),
-          scaffoldBackgroundColor: const Color(0xFFF6F8FB),
-          cardColor: Colors.white,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFFF6F8FB),
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            iconTheme: IconThemeData(color: Color(0xFF2C3E50)),
-            titleTextStyle: TextStyle(
-              color: Color(0xFF2C3E50),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         ),
         home: const HomeScreen(),
       ),

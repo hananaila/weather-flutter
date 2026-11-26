@@ -1,6 +1,6 @@
 # Responsi Praktikum Pemrograman Mobile - Weather Forecast App
 
-Aplikasi pemantau informasi dan prakiraan cuaca berbasis **Flutter** dengan arsitektur **Model-View-ViewModel (MVVM)**, integrasi **Open-Meteo REST API**, dan penyimpanan lokal menggunakan **SharedPreferences**.
+Aplikasi pemantau informasi dan prakiraan cuaca berbasis Flutter dengan arsitektur Model-View-ViewModel (MVVM), integrasi REST API Open-Meteo, dan penyimpanan lokal menggunakan SharedPreferences.
 
 ---
 
@@ -12,99 +12,82 @@ Aplikasi pemantau informasi dan prakiraan cuaca berbasis **Flutter** dengan arsi
 
 ---
 
-## 🏛️ Arsitektur Aplikasi (Pola MVVM)
+## Screenshot Aplikasi
 
-Aplikasi ini dibangun menggunakan arsitektur **Model-View-ViewModel (MVVM)** untuk memastikan kode modular, mudah diuji, dan memisahkan logika bisnis dari antarmuka pengguna:
+<table>
+  <thead>
+    <tr>
+      <th align="center" width="25%">Halaman Beranda</th>
+      <th align="center" width="25%">Halaman Detail Cuaca</th>
+      <th align="center" width="25%">Pencarian Lokasi</th>
+      <th align="center" width="25%">Lokasi Favorit</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="screenshots/beranda.png" width="100%" /></td>
+      <td align="center"><img src="screenshots/homeweather.png" width="100%" /></td>
+      <td align="center"><img src="screenshots/search.png" width="100%" /></td>
+      <td align="center"><img src="screenshots/favorit.png" width="100%" /></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+## Penerapan Arsitektur MVVM
+
+Aplikasi ini menerapkan pola arsitektur Model-View-ViewModel (MVVM) yang memisahkan tanggung jawab antarmuka, logika bisnis, dan sumber data:
 
 ```
 lib/
-├── models/             # Representasi struktur data (Data Layer)
-│   ├── location_model.dart     # Model entitas kota, koordinat, & lokasi
-│   └── weather_model.dart      # Model data cuaca terkini & prakiraan harian
-├── services/           # Komunikasi eksternal (API & Storage Layer)
-│   ├── api_service.dart        # Klien HTTP (GET) ke REST API Open-Meteo
-│   └── storage_service.dart    # Penyimpanan lokal kota favorit (SharedPreferences)
-├── utils/              # Helper dan konstanta utilitas
-│   └── weather_codes.dart      # Pemetaan WMO Weather Code ke ikon, deskripsi, & tema warna
-├── viewmodels/         # Pengelola logika bisnis & state (State Management)
-│   ├── weather_viewmodel.dart  # State cuaca, lokasi aktif, & status favorit (ChangeNotifier)
-│   └── search_viewmodel.dart   # State pencarian kota live & hasil Geocoding
-└── views/              # Tampilan antarmuka pengguna (Presentation Layer)
-    ├── home_screen.dart        # Halaman utama cuaca & prakiraan harian
-    ├── search_screen.dart      # Halaman pencarian kota & daftar lokasi favorit
-    └── widgets/                # Komponen antarmuka modular
-        ├── forecast_card.dart      # Kartu informasi ramalan harian
-        └── weather_info_tile.dart  # Kartu metrik kelembapan, angin, hujan, dll.
+├── models/             # Data Layer: representasi struktur data JSON
+│   ├── location_model.dart     # Model entitas kota, koordinat, dan wilayah
+│   └── weather_model.dart      # Model cuaca terkini dan prakiraan harian
+├── services/           # Data Source Layer: komunikasi jaringan dan penyimpanan
+│   ├── api_service.dart        # Klien HTTP GET ke Open-Meteo API
+│   └── storage_service.dart    # Penyimpanan lokal SharedPreferences
+├── viewmodels/         # State Management Layer: pengelolaan logika bisnis
+│   ├── weather_viewmodel.dart  # State cuaca aktif, favorit, dan riwayat
+│   └── search_viewmodel.dart   # State pencarian lokasi secara real-time
+└── views/              # Presentation Layer: antarmuka pengguna
+    ├── home_screen.dart        # Screen utama cuaca dan prakiraan 7 hari
+    ├── search_screen.dart      # Screen pencarian kota, favorit, dan riwayat
+    └── widgets/                # Widget modular pendukung antarmuka
 ```
 
-### 1. Model (Data Layer)
-- **`LocationModel`**: Memetakan data geocoding nama kota, provinsi/administrasi, negara, serta koordinat lintang (*latitude*) dan bujur (*longitude*). Dilengkapi dengan metode serialisasi `fromJson` dan `toJson`.
-- **`WeatherModel`**: Mengolah respons JSON dari API cuaca menjadi objek Dart yang terdiri dari `CurrentWeather` (kondisi cuaca saat ini) dan `DailyForecast` (ramalan cuaca 7 hari ke depan).
-
-### 2. View (Presentation Layer)
-- **`HomeScreen`**: Menampilkan kondisi cuaca terkini (suhu, cuaca, terasa seperti, suhu max/min), kartu metrik detail (kelembapan, kecepatan angin, curah hujan, peluang hujan), dan daftar prakiraan cuaca harian.
-- **`SearchScreen`**: Menyediakan pencarian kota secara langsung (*live search*), hasil rekomendasi koordinat, serta daftar lokasi favorit yang dapat dikelola pengguna.
-
-### 3. ViewModel (Business Logic & State Layer)
-- Menggunakan pustaka **`Provider`** dengan turunan kelas **`ChangeNotifier`**.
-- **`WeatherViewModel`**: Mengontrol pengambilan data cuaca dari API, menangani kondisi *loading*, *data*, dan *error*, menyimpan kota terakhir yang dilihat, serta mengelola status favorit.
-- **`SearchViewModel`**: Mengontrol alur pencarian kota secara *real-time* dan menangani kondisi pencarian kosong atau galat jaringan.
-
-### 4. Service (Data Source Layer)
-- **`ApiService`**: Bertanggung jawab melakukan HTTP Request metode `GET` ke Open-Meteo REST API dengan penanganan waktu henti (*timeout*) dan galat koneksi (*SocketException*).
-- **`StorageService`**: Menggunakan **`SharedPreferences`** untuk menyimpan daftar lokasi favorit dalam format JSON string secara persisten sehingga data tidak hilang saat aplikasi ditutup.
+1. **Model**: Mengolah dan memetakan respons JSON dari API ke dalam objek data Dart (`LocationModel` dan `WeatherModel`).
+2. **View**: Dibangun menggunakan Material Design yang menampilkan data dari ViewModel serta merespons interaksi pengguna (`HomeScreen` dan `SearchScreen`).
+3. **ViewModel**: Menggunakan `ChangeNotifier` bersama pustaka `Provider` untuk mengelola state data cuaca, alur pencarian kota, status favorit, serta menangani kondisi loading dan error.
+4. **Service**: Menangani permintaan HTTP GET ke REST API Open-Meteo (`ApiService`) dan operasi baca/tulis persisten ke SharedPreferences (`StorageService`).
 
 ---
 
-## 🌐 Implementasi REST API (Open-Meteo)
+## Implementasi Open-Meteo REST API
 
-Aplikasi mengintegrasikan dua endpoint resmi dari **Open-Meteo API**:
+Aplikasi menggunakan dua endpoint resmi Open-Meteo:
+1. **Geocoding API**: `https://geocoding-api.open-meteo.com/v1/search` untuk mencari kota berdasarkan nama serta mendapatkan koordinat latitude dan longitude.
+2. **Weather Forecast API**: `https://api.open-meteo.com/v1/forecast` untuk mengambil data cuaca terkini dan prakiraan harian berdasarkan koordinat.
 
-1. **Geocoding API (Pencarian Lokasi):**
-   * Endpoint: `https://geocoding-api.open-meteo.com/v1/search`
-   * Parameter: `name={query}&count=10&language=id&format=json`
-   * Mengambil nama kota, negara, dan koordinat (*latitude*, *longitude*).
+### Pemetaan Field Data yang Ditampilkan
 
-2. **Weather Forecast API (Data Cuaca):**
-   * Endpoint: `https://api.open-meteo.com/v1/forecast`
-   * Parameter: `latitude={lat}&longitude={lon}&current=...&daily=...&timezone=auto`
-
-### Pemetaan Field Data API yang Ditampilkan:
-
-| Informasi Cuaca | Field API Open-Meteo | Keterangan |
+| Data | Field API Open-Meteo | Keterangan |
 | :--- | :--- | :--- |
-| **Suhu Saat Ini** | `current.temperature_2m` | Ditampilkan dalam satuan °C |
-| **Kelembapan Udara** | `current.relative_humidity_2m` | Ditampilkan dalam satuan % |
-| **Suhu yang Dirasakan** | `current.apparent_temperature` | Nilai *feels like* suhu dalam °C |
-| **Curah Hujan** | `current.precipitation` | Ditampilkan dalam satuan mm |
-| **Kode Kondisi Cuaca** | `current.weather_code` | Dikonversi ke deskripsi dan ikon cuaca WMO |
-| **Kecepatan Angin** | `current.wind_speed_10m` | Ditampilkan dalam satuan km/j |
-| **Suhu Maksimum Harian** | `daily.temperature_2m_max` | Suhu tertinggi pada ramalan harian |
-| **Suhu Minimum Harian** | `daily.temperature_2m_min` | Suhu terendah pada ramalan harian |
-| **Peluang Hujan Maksimum** | `daily.precipitation_probability_max` | Peluang persentase hujan harian |
+| Suhu saat ini | current.temperature_2m | Ditampilkan dalam satuan derajat Celsius |
+| Kelembapan | current.relative_humidity_2m | Ditampilkan dalam persentase |
+| Suhu yang dirasakan | current.apparent_temperature | Nilai apparent temperature |
+| Curah hujan | current.precipitation | Ditampilkan dalam satuan milimeter |
+| Kode kondisi cuaca | current.weather_code | Dikonversi ke deskripsi kondisi cuaca |
+| Kecepatan angin | current.wind_speed_10m | Ditampilkan dalam satuan km/jam |
+| Suhu maksimum harian | daily.temperature_2m_max | Suhu tertinggi harian |
+| Suhu minimum harian | daily.temperature_2m_min | Suhu terendah harian |
+| Peluang hujan maksimum | daily.precipitation_probability_max | Peluang hujan tertinggi harian |
 
 ---
 
-## ✨ Fitur-Fitur Utama Aplikasi
+## Fitur Aplikasi
 
-1. **Data Cuaca Dinamis Real-Time:** 100% data diambil langsung dari Open-Meteo REST API (bukan data tiruan/hardcoded).
-2. **Pencarian Kota Global:** Pengguna dapat mencari kota di seluruh dunia dan memilihnya untuk langsung memperbarui cuaca di halaman beranda.
-3. **Penyimpanan Lokasi Favorit (Local Storage):** Menandai kota dengan ikon hati ❤️ untuk disimpan ke memori internal perangkat (*SharedPreferences*).
-4. **Prakiraan Cuaca 7 Hari ke Depan:** Informasi cuaca harian lengkap dengan rentang suhu dan kemungkinan hujan.
-5. **Indikator Visual Dinamis:** Warna latar kartu hero dan ikon otomatis menyesuaikan kondisi cuaca (cerah, berawan, gerimis, hujan lebat, atau badai petir).
-6. **Penanganan Status Lengkap:**
-   - *Loading State:* Indikator animasi memuat saat mengambil data.
-   - *Empty State:* Tampilan informatif ketika belum ada kota favorit atau hasil pencarian nihil.
-   - *Error State:* Pesan galat jelas dengan tombol **Coba Lagi (Retry)** ketika koneksi internet terputus.
-
----
-
-## 📸 Dokumentasi Screenshot Aplikasi
-
-*(Screenshot dapat disimpan di dalam folder `screenshots/`)*
-
-| Halaman Utama (Cuaca Terkini & Forecast) | Halaman Pencarian Kota (Geocoding API) |
-| :---: | :---: |
-| <img src="screenshots/home_screen.png" width="240" /> | <img src="screenshots/search_screen.png" width="240" /> |
-| **Daftar Lokasi Favorit (Local Storage)** | **Detail Metrik Cuaca & Ramalan Harian** |
-| <img src="screenshots/favorite_screen.png" width="240" /> | <img src="screenshots/forecast_screen.png" width="240" /> |
+1. **Home / Weather Screen**: Menampilkan nama kota aktif, kondisi cuaca, suhu saat ini, kelembapan, kecepatan angin, curah hujan, peluang hujan, dan prakiraan cuaca 7 hari ke depan.
+2. **Search / Location Screen**: Menyediakan input pencarian kota, menampilkan hasil pencarian dari Geocoding API, memilih kota untuk melihat cuaca, serta menyimpan kota ke dalam daftar favorit.
+3. **Local Storage**: Menyimpan daftar kota favorit dan riwayat pencarian menggunakan SharedPreferences sehingga data tetap tersimpan saat aplikasi dibuka kembali.
+4. **Error & Loading Handling**: Menangani indikator loading saat mengambil data dari API serta menampilkan pesan error saat koneksi internet terputus.
